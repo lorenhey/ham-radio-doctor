@@ -1,0 +1,33 @@
+[project]
+name = "ham-radio-doctor"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Loren", email = "lorenzo.perez@ing.unlp.edu.ar" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "numpy>=2.5.3",
+    "pydantic>=2.13.5",
+    "pyside6>=6.11.2",
+    "rich>=15.0.0",
+    "scikit-rf>=2.1.0",
+    "scipy>=1.18.1",
+    "soundfile>=0.14.0",
+    "typer>=0.27.2",
+]
+
+[project.scripts]
+ham-radio-doctor = "ham_radio_doctor.cli.main:app"
+hrd = "ham_radio_doctor.cli.main:app"
+hrd-gui = "ham_radio_doctor.gui.main:main"
+
+[build-system]
+requires = ["uv_build>=0.12.9,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
