@@ -1,5 +1,7 @@
 # ham-radio-doctor
 
+🌐 **Live Interactive Workbench v2.0.0**: [https://lorenhey.github.io/ham-radio-doctor/](https://lorenhey.github.io/ham-radio-doctor/)
+
 El **Ham Radio Doctor** es una herramienta open-source de diagnóstico, troubleshooting y control de salud basada en evidencia empírica para estaciones de radioaficionado.
 
 La herramienta correlaciona mediciones de RF, niveles de audio, estado CAT, modos digitales (WSJT-X), y diferencias de configuración histórica para explicar por qué tu estación se comporta distinto que ayer, usando evidencia dura y sin invenciones.

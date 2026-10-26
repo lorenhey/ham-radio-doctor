@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ham Radio Doctor - Forensic Station Troubleshooting Workbench v2.0.0</title>
+  <meta name="description" content="Evidence-based troubleshooting and health diagnostics for amateur radio stations. RF, SWR, audio overdrive, 50/60Hz hum, WSJT-X timing, RFI differential spectrum.">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🩺</text></svg>">
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="brand">
+      <div class="brand-icon">🩺</div>
+      <div>
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          <h1>Ham Radio Doctor</h1>
+          <span class="version-badge">v2.0.0</span>
+        </div>
+        <p style="font-size: 0.75rem; color: var(--text-dim);">Evidence-Based Amateur Radio Station Diagnostics & Forensic Audit</p>
+      </div>
+    </div>
+    <div class="header-status">
+      <span>Rule Engine: <strong>Deterministic</strong></span>
+      <span>Evidence Level: <strong>Ladder-Enforced</strong></span>
+      <span class="status-badge ok" id="system-status-badge">● Engine Online</span>
+    </div>
+  </header>
+
+  <!-- Navigation Tabs -->
+  <nav class="nav-tabs">
+    <button class="nav-tab active" data-tab="overview">🩺 Evidence Ladder & Summary</button>
+    <button class="nav-tab" data-tab="rf">⚡ RF, SWR & Touchstone S1P</button>
+    <button class="nav-tab" data-tab="audio">🎙️ Audio & ALC Doctor</button>
+    <button class="nav-tab" data-tab="rfi">📡 RFI A/B Spectrum Lab</button>
+    <button class="nav-tab" data-tab="digital">⏱️ Digital Timing & PPM</button>
+    <button class="nav-tab" data-tab="diff">🔄 Station Snapshot Diff</button>
+    <button class="nav-tab" data-tab="report">📋 Forensic Report & Export</button>
+  </nav>
+
+  <!-- Main Container -->
+  <main>
+
+    <!-- Station Signal Chain Status Banner -->
+    <section class="station-chain-banner">
+      <div class="chain-title">
+        <span>Station Physical Signal Flow</span>
+        <span style="font-size: 0.75rem; color: var(--accent-cyan);">Reactive Diagnostic State</span>
+      </div>
+      <div class="chain-flow">
+        <div class="chain-node status-ok" id="chain-pc">
+          <span>💻 PC</span>
+          <span class="chain-status">✓ NTP Sync</span>
+        </div>
+        <span class="chain-arrow">→</span>
+        <div class="chain-node status-ok" id="chain-audio">
+          <span>🎧 Audio I/O</span>
+          <span class="chain-status">✓ Linear</span>
+        </div>
+        <span class="chain-arrow">→</span>
+        <div class="chain-node status-ok" id="chain-rig">
+          <span>📻 Transceiver</span>
+          <span class="chain-status">✓ Normal</span>
+        </div>
+        <span class="chain-arrow">→</span>
+        <div class="chain-node status-ok" id="chain-tuner">
+          <span>🎛️ Tuner / Bridge</span>
+          <span class="chain-status">50 Ω Ref</span>
+        </div>
+        <span class="chain-arrow">→</span>
+        <div class="chain-node status-ok" id="chain-feedline">
+          <span>〰️ Feedline</span>
+          <span class="chain-status">Low Loss</span>
+        </div>
+        <span class="chain-arrow">→</span>
+        <div class="chain-node status-ok" id="chain-ant">
+          <span>📡 Antenna</span>
+          <span class="chain-status">✓ Matched</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 1: Overview & Evidence Ladder -->
+    <section class="tab-pane active" id="pane-overview">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">
+            <h2>🩺 The Evidence Ladder (Forensic Rule Engine)</h2>
+            <span class="status-badge ok" style="font-size: 0.75rem;">Strict Empiricism</span>
+          </div>
+          <div class="callout">
+            <strong>Core Principle:</strong> Evidence before opinion. Hypotheses are evaluated strictly against observed sensor data, derived transforms, and known diffs. No blaming propagation or mystery antenna detuning without hard contradictory evidence.
+          </div>
+          <div class="ladder-box" id="hypotheses-container">
+            <!-- Hypotheses rendered dynamically -->
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h2>📊 Active Evidence Pool (<span id="evidence-count">0</span>)</h2>
+            <span class="card-subtitle">Real-time telemetry & derivations</span>
+          </div>
+          <ul class="evidence-list" id="evidence-pool-list" style="max-height: 440px; overflow-y: auto;">
+            <!-- Evidence items rendered dynamically -->
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 2: RF, SWR & Touchstone S1P -->
+    <section class="tab-pane" id="pane-rf">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">
+            <h2>⚡ Directional Coupler & SWR Bridge</h2>
+            <span class="status-badge ok" id="rf-status-badge">EXCELLENT</span>
+          </div>
+          <div class="control-group">
+            <div class="control-label">
+              <span>Forward Power ($P_f$)</span>
+              <span class="control-val"><span id="lbl-pf">100</span> W</span>
+            </div>
+            <input type="range" id="range-pf" min="1" max="1500" value="100" step="1">
+            <input type="number" id="input-pf" min="0.1" max="2000" value="100" style="margin-top: 0.35rem;">
+          </div>
+          <div class="control-group">
+            <div class="control-label">
+              <span>Reflected Power ($P_r$)</span>
+              <span class="control-val"><span id="lbl-pr">1.8</span> W</span>
+            </div>
+            <input type="range" id="range-pr" min="0" max="300" value="1.8" step="0.1">
+            <input type="number" id="input-pr" min="0" max="500" value="1.8" style="margin-top: 0.35rem;">
+          </div>
+
+          <div class="btn-group">
+            <button class="btn btn-sm btn-rf-preset" data-pf="100" data-pr="0">Match (1.0:1)</button>
+            <button class="btn btn-sm btn-rf-preset" data-pf="100" data-pr="4.0">SWR 1.5:1</button>
+            <button class="btn btn-sm btn-rf-preset" data-pf="100" data-pr="11.1">SWR 2.0:1</button>
+            <button class="btn btn-sm btn-rf-preset" data-pf="100" data-pr="25.0">SWR 3.0:1 (Foldback)</button>
+            <button class="btn btn-sm btn-rf-preset" data-pf="100" data-pr="95.0">Open / Short</button>
+          </div>
+
+          <div class="metrics-row" style="margin-top: 1.25rem;">
+            <div class="metric-tile">
+              <div class="label">SWR</div>
+              <div class="value" id="val-swr">1.31</div>
+            </div>
+            <div class="metric-tile">
+              <div class="label">Return Loss</div>
+              <div class="value" id="val-rl">17.4<span class="unit">dB</span></div>
+            </div>
+            <div class="metric-tile">
+              <div class="label">Mismatch Loss</div>
+              <div class="value" id="val-ml">0.08<span class="unit">dB</span></div>
+            </div>
+            <div class="metric-tile">
+              <div class="label">Net Delivered</div>
+              <div class="value" id="val-pnet">98.2<span class="unit">W</span></div>
+            </div>
+            <div class="metric-tile">
+              <div class="label">|Gamma| (&Gamma;)</div>
+              <div class="value" id="val-gamma">0.134</div>
+            </div>
+          </div>
+
+          <div class="callout" id="rf-status-msg" style="margin-bottom: 0;">
+            Normal operation. Negligible reflected power.
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h2>📈 Antenna Touchstone Sweep (.s1p)</h2>
+            <span class="card-subtitle">Resonance & 2:1 Bandwidth</span>
+          </div>
+
+          <div class="control-group">
+            <label class="control-label" for="select-antenna-preset">Antenna Sweep Preset / Scenario</label>
+            <select id="select-antenna-preset">
+              <option value="dipole_40m">40m Dipole (Nominal Baseline @ 7.100 MHz)</option>
+              <option value="rain_detuned_40m">40m Dipole (Rain & Moisture Detuned: -85 kHz shift)</option>
+              <option value="broken_radial">40m Vertical (Missing Radials: High ground loss)</option>
+              <option value="yagi_20m">20m 3-Element Yagi (@ 14.175 MHz)</option>
+              <option value="bad_connector_open">Coaxial Cable Open / Center Pin Detached</option>
+            </select>
+          </div>
+
+          <div class="canvas-container">
+            <canvas id="canvas-swr"></canvas>
+          </div>
+
+          <div class="metrics-row">
+            <div class="metric-tile">
+              <div class="label">Resonance Freq</div>
+              <div class="value" id="val-ant-fres">7.100<span class="unit">MHz</span></div>
+            </div>
+            <div class="metric-tile">
+              <div class="label">Min SWR</div>
+              <div class="value" id="val-ant-swrmin">1.14</div>
+            </div>
+            <div class="metric-tile">
+              <div class="label">Z at Resonance</div>
+              <div class="value" id="val-ant-zres">57+0j<span class="unit">&Omega;</span></div>
+            </div>
+            <div class="metric-tile">
+              <div class="label">2:1 Bandwidth</div>
+              <div class="value" id="val-ant-bw">280<span class="unit">kHz</span></div>
+            </div>
+          </div>
+
+          <div class="callout" id="ant-comparison-msg" style="margin-bottom: 0; font-size: 0.8rem;">
+            Sweep perfectly matches baseline. No resonance or SWR shift detected.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 3: Audio & ALC Doctor -->
+    <section class="tab-pane" id="pane-audio">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">
+            <h2>🎙️ Audio Waveform & Clipping Analysis</h2>
+            <span class="card-subtitle">Loopback Oscilloscope</span>
+          </div>
+
+          <div class="control-group">
+            <label class="control-label" for="select-audio-preset">Audio Test Signal Condition</label>
+            <select id="select-audio-preset">
+              <option value="clean">Clean Linear Two-Tone (700 Hz + 1900 Hz, -3 dBFS)</option>
+              <option value="overdrive">TX Audio Overdrive (8.1% Clipped Samples, ALC Splatter)</option>
+              <option value="hum_50hz">Ground Loop 50 Hz Hum & Harmonics (Mains Induction)</option>
+              <option value="hum_60hz">Ground Loop 60 Hz Hum & Harmonics</option>
+              <option value="dc_offset">Severe DC Voltage Offset (+0.22 V Soundcard Leakage)</option>
+            </select>
+          </div>
+
+          <div class="canvas-container">
+            <canvas id="canvas-audio-wave"></canvas>
+          </div>
+
+          <div class="metrics-row">
+            <div class="metric-tile">
+              <div class="label">Peak Level</div>
+              <div class="value" id="val-aud-peak">0.700</div>
+            </div>
+            <div class="metric-tile">
+              <div class="label">RMS Level</div>
+              <div class="value" id="val-aud-rms">0.354</div>
+            </div>
+            <div class="metric-tile">
+              <div class="label">Clipping</div>
+              <div class="value" id="val-aud-clip">0.0<span class="unit">%</span></div>
+            </div>
+            <div class="metric-tile">
+              <div class="label">DC Offset</div>
+              <div class="value" id="val-aud-dc">0.000<span class="unit">V</span></div>
+            </div>
+            <div class="metric-tile">
+              <div class="label">Crest Factor</div>
+              <div class="value" id="val-aud-crest">1.98</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h2>📊 Audio FFT Spectrum & Hum Detector</h2>
+            <span class="card-subtitle">50/60 Hz Mains Isolation Audit</span>
+          </div>
+
+          <div class="canvas-container">
+            <canvas id="canvas-audio-spec"></canvas>
+          </div>
+
+          <div class="metrics-row">
+            <div class="metric-tile" style="grid-column: span 2;">
+              <div class="label">Mains Hum Detection</div>
+              <div class="value" id="val-aud-hum" style="font-size: 1.1rem; color: var(--success);">None detected</div>
+            </div>
+          </div>
+
+          <div class="callout" id="audio-findings-msg" style="margin-bottom: 0; font-size: 0.85rem;">
+            Audio levels normal. No clipping, DC offset or 50/60 Hz hum detected.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 4: RFI A/B Spectrum Lab -->
+    <section class="tab-pane" id="pane-rfi">
+      <div class="card">
+        <div class="card-header">
+          <h2>📡 RFI Differential Spectrum Lab (A/B Test)</h2>
+          <span class="card-subtitle">Device OFF (Baseline) vs Device ON (Interference)</span>
+        </div>
+
+        <div class="control-group" style="max-width: 480px;">
+          <label class="control-label" for="select-rfi-preset">Suspect RFI Source Scenario</label>
+          <select id="select-rfi-preset">
+            <option value="clean_no_rfi">No Interference (Clean RF Background)</option>
+            <option value="smps_charger">Switch-Mode Power Supply / LED Driver (Periodic Harmonic Comb)</option>
+            <option value="plasma_tv">Plasma Display / Industrial Motor (Broadband Hash Elevation)</option>
+          </select>
+        </div>
+
+        <div class="canvas-container">
+          <canvas id="canvas-rfi"></canvas>
+        </div>
+
+        <div class="metrics-row">
+          <div class="metric-tile">
+            <div class="label">Mean Floor Rise</div>
+            <div class="value" id="val-rfi-rise">+0.0<span class="unit">dB</span></div>
+          </div>
+          <div class="metric-tile">
+            <div class="label">Periodic Comb Detected</div>
+            <div class="value" id="val-rfi-comb">NO</div>
+          </div>
+        </div>
+
+        <div class="callout" id="rfi-findings-msg" style="margin-bottom: 0;">
+          No significant RFI difference between Device OFF and Device ON.
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 5: Digital Timing & PPM -->
+    <section class="tab-pane" id="pane-digital">
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header">
+            <h2>⏱️ WSJT-X Decoded Timing Distribution (DT)</h2>
+            <span class="card-subtitle">PC System Clock Synchronization Audit</span>
+          </div>
+
+          <div class="control-group">
+            <label class="control-label" for="select-timing-preset">DT Telemetry Scenario</label>
+            <select id="select-timing-preset">
+              <option value="normal">Normal Synchronized NTP Clock (|&mu;| &lt; 0.1s)</option>
+              <option value="drift">Systematic Clock Drift (+1.8s Systematic Shift)</option>
+              <option value="jitter">High Audio / Buffer Jitter (Large standard deviation)</option>
+            </select>
+          </div>
+
+          <div class="canvas-container">
+            <canvas id="canvas-dt"></canvas>
+          </div>
+
+          <div class="metrics-row">
+            <div class="metric-tile">
+              <div class="label">Mean DT (&mu;)</div>
+              <div class="value" id="val-dt-mean">+0.02<span class="unit">s</span></div>
+            </div>
+            <div class="metric-tile">
+              <div class="label">Std Dev (&sigma;)</div>
+              <div class="value" id="val-dt-std">0.05<span class="unit">s</span></div>
+            </div>
+            <div class="metric-tile">
+              <div class="label">Decodes Count</div>
+              <div class="value" id="val-dt-count">7</div>
+            </div>
+            <div class="metric-tile">
+              <div class="label">Timing Status</div>
+              <div class="value" id="val-dt-status" style="font-size: 1rem;">NORMAL</div>
+            </div>
+          </div>
+
+          <div class="callout" id="dt-findings-msg" style="margin-bottom: 0;">
+            DT distribution within normal bounds for FT8/FT4.
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header">
+            <h2>🎛️ Master Oscillator Calibration (PPM Calculator)</h2>
+            <span class="card-subtitle">Zero-beat calibration against WWV/CHU/BPM</span>
+          </div>
+
+          <div class="control-group">
+            <label class="control-label" for="input-ppm-meas">Measured Frequency ($f_m$)</label>
+            <input type="number" id="input-ppm-meas" value="10000030" step="1">
+          </div>
+          <div class="control-group">
+            <label class="control-label" for="input-ppm-ref">Standard Reference Frequency ($f_r$)</label>
+            <input type="number" id="input-ppm-ref" value="10000000" step="1">
+          </div>
+
+          <div class="metrics-row" style="margin-top: 1rem;">
+            <div class="metric-tile">
+              <div class="label">Delta Frequency</div>
+              <div class="value" id="val-ppm-delta">+30.0<span class="unit">Hz</span></div>
+            </div>
+            <div class="metric-tile">
+              <div class="label">Calculated Error</div>
+              <div class="value" id="val-ppm-err">+3.00<span class="unit">PPM</span></div>
+            </div>
+          </div>
+
+          <div class="callout" style="margin-bottom: 0;">
+            $$\Delta f_{\text{ppm}} = 10^6 \times \frac{f_m - f_r}{f_r}$$
+            A deviation exceeding $\pm 2.0\text{ PPM}$ causes noticeable sync drift during multi-minute transmissions.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tab 6: Station Snapshot Diff -->
+    <section class="tab-pane" id="pane-diff">
+      <div class="card">
+        <div class="card-header">
+          <h2>🔄 Station Snapshot Diff: "What changed since yesterday?"</h2>
+          <span class="card-subtitle">Comparison against Last Known Good Baseline</span>
+        </div>
+
+        <div class="control-group" style="max-width: 480px;">
+          <label class="control-label" for="select-diff-scenario">Forensic Comparison Scenario</label>
+          <select id="select-diff-scenario">
+            <option value="audio_routing_swap">Windows Audio Routing Swapped to Realtek Microphone Array</option>
+            <option value="samplerate_mismatch">Sample Rate Mismatch (48000 Hz → 44100 Hz)</option>
+            <option value="antenna_switch_wrong">Antenna Switch Accidentally Toggled to Dummy Load</option>
+            <option value="clock_lost">System Clock NTP Service Disabled</option>
+            <option value="no_change">No Changes (Identical to Last Known Good)</option>
+          </select>
+        </div>
+
+        <table class="diff-table">
+          <thead>
+            <tr>
+              <th>Parameter</th>
+              <th>Last Known Good</th>
+              <th>Current Station</th>
+              <th>Forensic Significance</th>
+            </tr>
+          </thead>
+          <tbody id="diff-table-body">
+            <!-- Diff rows rendered dynamically -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Tab 7: Report & Export -->
+    <section class="tab-pane" id="pane-report">
+      <div class="card">
+        <div class="card-header">
+          <h2>📋 Forensic Diagnostic Report & Export</h2>
+          <div class="btn-group">
+            <button class="btn btn-sm btn-primary" id="btn-copy-report">Copy Markdown</button>
+            <button class="btn btn-sm" id="btn-export-md">Download .md</button>
+            <button class="btn btn-sm" id="btn-export-json">Download .json</button>
+          </div>
+        </div>
+
+        <textarea id="report-text-area" rows="18" readonly style="width: 100%;"></textarea>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Footer -->
+  <footer>
+    <p><strong>Ham Radio Doctor v2.0.0</strong> — Designed by <a href="https://github.com/lorenhey" target="_blank" rel="noopener">Loren (@lorenhey)</a>. Licensed under the MIT License.</p>
+    <p style="margin-top: 0.35rem; color: var(--text-dim); font-size: 0.75rem;">Evidence-based troubleshooting for amateur radio stations. Zero telemetry, 100% client-side deterministic execution.</p>
+  </footer>
+
+  <script src="js/ham-doctor-engine.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
